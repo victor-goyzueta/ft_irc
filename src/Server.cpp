@@ -11,27 +11,6 @@ void	signalHandler(int signum)
 	g_running = false;
 }
 
-Server::Server(int port, const std::string& password)
-: _port(port), _serverSocket(-1), _password(password), _running(false)
-{
-	signal(SIGINT, signalHandler);
-	setupSocket();
-}
-
-Server::~Server()
-{
-	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
-		delete it->second;
-	_clients.clear();
-
-	for (std::map<std::string, Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it)
-		delete it->second;
-	_channels.clear();
-
-	if (_serverSocket >= 0)
-		close(_serverSocket);
-}
-
 void	Server::setupSocket()
 {
 	_serverSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -78,6 +57,27 @@ void	Server::setupSocket()
 	serverpfd.events = POLLIN;
 	serverpfd.revents = 0;
 	_pollFds.push_back(serverpfd);
+}
+
+Server::Server(int port, const std::string& password)
+	: _port(port), _serverSocket(-1), _password(password), _running(false)
+{
+	signal(SIGINT, signalHandler);
+	setupSocket();
+}
+
+Server::~Server()
+{
+	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+		delete it->second;
+	_clients.clear();
+
+	for (std::map<std::string, Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it)
+		delete it->second;
+	_channels.clear();
+
+	if (_serverSocket >= 0)
+		close(_serverSocket);
 }
 
 void	Server::run()
