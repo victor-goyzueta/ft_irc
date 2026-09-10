@@ -13,12 +13,17 @@ void	signalHandler(int signum)
 
 void	Server::setupSocket()
 {
+	//	Create a socket for comunication TCP using IPv.4,
+	//		the system selects the appropriate protocol.
 	_serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_serverSocket < 0)
 	{
 		std::cerr << "Error: Server socket creation failed" << std::endl;
 		exit(1);
 	}
+
+	//	Modify a socket's setting's option allowing using a local address
+	//		that may still be temporarily associated with the previous socket.
 	int	opt = 1;
 	if (setsockopt(_serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
 	{
@@ -26,24 +31,31 @@ void	Server::setupSocket()
 		close(_serverSocket);
 		exit(1);
 	}
+
+	//	Set up socket as non-blocking to manage many clients from a single process.
 	if (fcntl(_serverSocket, F_SETFL, O_NONBLOCK) < 0)
 	{
 		std::cerr << "Error: fcntl failed" << std::endl;
 		close(_serverSocket);
 		exit(1);
 	}
+
+	//	This structure contains the server's IPv4 address.
 	struct sockaddr_in	serverAddr;
 	std::memset(&serverAddr, 0, sizeof(serverAddr));
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_addr.s_addr = INADDR_ANY;
 	serverAddr.sin_port = htons(_port);
 
+	//	Associate the socket, IP, and port to obtain the server's local address.
 	if (bind(_serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0)
 	{
 		std::cerr << "Error: bind failed on port " << _port << "." << std::endl;
 		close(_serverSocket);
 		exit(1);
 	}
+
+	//	Turn socket into a listening socket.
 	if (listen(_serverSocket, SOMAXCONN) < 0)
 	{
 		std::cerr << "Error: listen failed." << std::endl;
@@ -52,6 +64,8 @@ void	Server::setupSocket()
 	}
 	std::cout << "Server listening on port: " << _port << "." << std::endl;
 	
+	//	This structure contains the fds and events for their respective sockets.
+	//		Initially from the server socket.
 	struct pollfd	serverpfd;
 	serverpfd.fd = _serverSocket;
 	serverpfd.events = POLLIN;
@@ -68,11 +82,13 @@ Server::Server(int port, const std::string& password)
 
 Server::~Server()
 {
-	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+	for (std::map<int, Client*>::iterator it =
+			_clients.begin(); it != _clients.end(); ++it)
 		delete it->second;
 	_clients.clear();
 
-	for (std::map<std::string, Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it)
+	for (std::map<std::string, Channel*>::iterator it =
+			_channels.begin(); it != _channels.end(); ++it)
 		delete it->second;
 	_channels.clear();
 
@@ -88,11 +104,14 @@ void	Server::run()
 	std::cout << "Server running: press Ctrl+C to stop." << std::endl;
 	while (_running && g_running)
 	{
+		//	Wait for events and return the number of FDs with events.
 		int	tmp = poll(&_pollFds[0], _pollFds.size(), -1);
 		if (tmp < 0)
 		{
+			// if errno matches signal interruption, ignore it
 			if (errno == EINTR)
 				continue;
+			// Other wise, error break loop
 			std::cout << "Error: poll failed" << std::endl;
 			break;
 		}
@@ -100,6 +119,7 @@ void	Server::run()
 		{
 			if (_pollFds[i].revents == 0)
 				continue;
+			// Incoming events pending
 			if (_pollFds[i].revents & POLLIN)
 			{
 				if (_pollFds[i].fd == _serverSocket)

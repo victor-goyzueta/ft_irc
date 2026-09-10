@@ -23,6 +23,7 @@ class	Channel
 		std::string					_password;
 		size_t						_userLimit;
 		std::vector<std::string>	_invitedUsers;
+
 	public:
 		Channel(const std::string& name);
 		~Channel();

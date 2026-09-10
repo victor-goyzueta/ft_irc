@@ -26,6 +26,7 @@ class	Client
 		bool						_disconnected;
 		std::vector<Channel*>		_channels;
 		std::vector<std::string>	_invites;
+
 	public:
 		Client(int fd, struct sockaddr_in address);
 		~Client();
