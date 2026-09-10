@@ -13,7 +13,10 @@ Client::Client(int fd, struct sockaddr_in address)
 	_registered(false),
 	_disconnected(false)
 {
+	// std::string	message = "Wellcome\n";
 	_hostname = inet_ntoa(_address.sin_addr);
+	// if (_fd >= 0 && !message.empty())
+	// 	send(_fd, message.c_str(), message.length(), 0);
 }
 
 Client::~Client()

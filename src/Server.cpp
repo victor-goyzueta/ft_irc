@@ -163,8 +163,10 @@ void	Server::handleNewConnection()
 	pfd.revents = 0;
 	_pollFds.push_back(pfd);
 	
+	// std::cout << "New client connected: fd= " << clientFd << ", ip=" <<
+	// inet_ntoa(clientAddr.sin_addr) << std::endl;
 	std::cout << "New client connected: fd= " << clientFd << ", ip=" <<
-	inet_ntoa(clientAddr.sin_addr) << std::endl;
+	client->getHostName() << std::endl;
 }
 
 void	Server::handleClientData(int fd)
