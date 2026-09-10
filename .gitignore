@@ -38,6 +38,7 @@
 *.exe
 *.out
 *.app
+ircserv
 
 # Build directories
 build/
