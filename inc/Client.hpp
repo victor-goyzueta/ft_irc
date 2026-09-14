@@ -54,10 +54,11 @@ class	Client
 
 		void		joinChannel(Channel* channel);
 		void		leaveChannel(Channel* channel);
-		bool		isInChannel(const std::string& name) const;
 		void		addInvite(const std::string& channelName);
-		bool		isInvitedTo(const std::string& channelName) const;
 		void		removeInvite(const std::string& channelName);
+	
+		bool		isInChannel(const std::string& name) const;
+		bool		isInvitedTo(const std::string& channelName) const;
 
 		void		appendToBuffer(const std::string& data);
     	void		clearBuffer();

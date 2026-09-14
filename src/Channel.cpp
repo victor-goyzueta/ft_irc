@@ -14,14 +14,45 @@ Channel::Channel(const std::string& name)
 
 Channel::~Channel() {}
 
-std::string					Channel::getName() const {return _name;}
-std::string					Channel::getTopic() const {return _topic;}
-std::string					Channel::getTopicSetter() const {return _topicSetter;}
-time_t						Channel::getTopicTime() const {return _topicTime;}
-std::string					Channel::getPassword() const {return _password;}
-size_t						Channel::getUserLimit() const {return _userLimit;}
-size_t						Channel::getClientCount() const {return _clients.size();}
-const std::vector<Client*>& Channel::getClients() const {return _clients;}
+std::string					Channel::getName() const
+{
+	return _name;
+}
+
+std::string					Channel::getTopic() const
+{
+	return _topic;
+}
+
+std::string					Channel::getTopicSetter() const
+{
+	return _topicSetter;
+}
+
+time_t						Channel::getTopicTime() const
+{
+	return _topicTime;
+}
+
+std::string					Channel::getPassword() const
+{
+	return _password;
+}
+
+size_t						Channel::getUserLimit() const
+{
+	return _userLimit;
+}
+
+size_t						Channel::getClientCount() const
+{
+	return _clients.size();
+}
+
+const std::vector<Client*>& Channel::getClients() const
+{
+	return _clients;
+}
 
 std::string		Channel::getModeString() const
 {
@@ -52,18 +83,40 @@ void	Channel::setTopic(const std::string& topic, const std::string& setter)
 	_topicTime = time(NULL);
 }
 
-void	Channel::setPassword(const std::string& pass) {_password = pass;}
-void	Channel::setUserLimit(size_t limit) {_userLimit = limit;}
-void	Channel::removeUserLimit() {_userLimit = 0;}
+void	Channel::setPassword(const std::string& pass)
+{
+	_password = pass;
+}
+
+void	Channel::setUserLimit(size_t limit)
+{
+	_userLimit = limit;
+}
+
+void	Channel::removeUserLimit()
+{
+	_userLimit = 0;
+}
 
 bool	Channel::hasMode(char mode) const
 {
 	return _modes.find(mode) != _modes.end();
 }
 
-void	Channel::addMode(char mode) {_modes.insert(mode);}
-void	Channel::removeMode(char mode) {_modes.erase(mode);}
-void	Channel::addClient(Client* client) {_clients.push_back(client);}
+void	Channel::addMode(char mode)
+{
+	_modes.insert(mode);
+}
+
+void	Channel::removeMode(char mode)
+{
+	_modes.erase(mode);
+}
+
+void	Channel::addClient(Client* client)
+{
+	_clients.push_back(client);
+}
 
 void	Channel::removeClient(Client* client)
 {
@@ -89,7 +142,10 @@ bool	Channel::hasClient(const std::string& nick) const
 	return false;
 }
 
-bool	Channel::isEmpty() const {return _clients.empty();}
+bool	Channel::isEmpty() const
+{
+	return _clients.empty();
+}
 
 void	Channel::addOperator(Client* client)
 {

@@ -22,28 +22,156 @@ Client::~Client()
 		close(_fd);
 }
 
-int				Client::getFd() const {return _fd;}
-std::string		Client::getNickName() const {return _nickname;}
-std::string		Client::getUserName() const {return _username;}
-std::string		Client::getRealName() const {return _realname;}
-std::string		Client::getHostName() const {return _hostname;}
+int				Client::getFd() const
+{
+	return _fd;
+}
+std::string		Client::getNickName() const
+{
+	return _nickname;
+}
+
+std::string		Client::getUserName() const
+{
+	return _username;
+}
+
+std::string		Client::getRealName() const
+{
+	return _realname;
+}
+
+std::string		Client::getHostName() const
+{
+	return _hostname;
+}
+
 std::string		Client::getPrefix() const
 {
 	return ":" + _nickname + "!" + _username + "@" + _hostname;
 }
-bool			Client::isAuthenticated() const {return _authenticated;}
-bool			Client::isRegistered() const {return _registered;}
-bool			Client::isDisconnected() const {return _disconnected;}
-std::string&	Client::getBuffer() {return _buffer;}
-const std::vector<Channel*>	Client::getChannels() const {return _channels;}
 
-void	Client::setNickName(std::string& nick) {_nickname = nick;}
-void	Client::setUserName(const std::string& user) {_username = user;}
-void	Client::setRealName(const std::string& real) {_realname = real;}
-void	Client::setHostName(std::string& host) {_hostname = host;}
-void	Client::setAuthenticated(bool authenticated) {_authenticated = authenticated;}
-void	Client::setRegistered(bool registered) {_registered = registered;}
-void	Client::setDisconnected(bool disconnected) {_disconnected = disconnected;}
+bool			Client::isAuthenticated() const
+{
+	return _authenticated;
+}
+
+bool			Client::isRegistered() const
+{
+	return _registered;
+}
+
+bool			Client::isDisconnected() const
+{
+	return _disconnected;
+}
+
+std::string&	Client::getBuffer()
+{
+	return _buffer;
+}
+
+const std::vector<Channel*>	Client::getChannels() const
+{
+	return _channels;
+}
+
+void	Client::setNickName(std::string& nick)
+{
+	_nickname = nick;
+}
+
+void	Client::setUserName(const std::string& user)
+{
+	_username = user;
+}
+
+void	Client::setRealName(const std::string& real)
+{
+	_realname = real;
+}
+
+void	Client::setHostName(std::string& host)
+{
+	_hostname = host;
+}
+
+void	Client::setAuthenticated(bool authenticated)
+{
+	_authenticated = authenticated;
+}
+
+void	Client::setRegistered(bool registered)
+{
+	_registered = registered;
+}
+
+void	Client::setDisconnected(bool disconnected)
+{
+	_disconnected = disconnected;
+}
+
+void	Client::joinChannel(Channel* channel)
+{
+	_channels.push_back(channel);
+}
+
+void	Client::leaveChannel(Channel* channel)
+{
+	std::vector<Channel*>::iterator it = std::find(_channels.begin(),
+		_channels.end(), channel);
+	if (it != _channels.end())
+		_channels.erase(it);
+}
+
+void	Client::addInvite(const std::string& channelName)
+{
+	if (!isInvitedTo(channelName))
+		_invites.push_back(channelName);
+}
+
+void	Client::removeInvite(const std::string& channelName)
+{
+	std::vector<std::string>::iterator it = std::find(_invites.begin(),
+		_invites.end(), channelName);
+	if (it != _invites.end())
+		_invites.erase(it);
+}
+
+bool	Client::isInChannel(const std::string& name) const
+{
+	for (std::vector<Channel*>::const_iterator it = _channels.begin(); it != _channels.end(); ++it)
+	{
+		if ((*it)->getName() == name)
+			return true;
+	}
+	return false;
+}
+
+bool	Client::isInvitedTo(const std::string& channelName) const
+{
+	for (std::vector<std::string>::const_iterator it = _invites.begin(); it != _invites.end(); ++it)
+	{
+		if (*it == channelName)
+			return true;
+	}
+	return false;
+}
+
+void	Client::appendToBuffer(const std::string& data)
+{
+	_buffer += data;
+}
+
+void	Client::clearBuffer()
+{
+	_buffer.clear();
+}
+
+bool	Client::hasCompleteMessage() const
+{
+	return _buffer.find('\n') != std::string::npos;
+}
 
 std::string	Client::extractMessage()
 {
@@ -63,66 +191,6 @@ std::string	Client::extractMessage()
 			message = message.substr(0, len - 1);
 	}
 	return message;
-}
-
-void	Client::joinChannel(Channel* channel)
-{
-	_channels.push_back(channel);
-}
-
-void	Client::leaveChannel(Channel* channel)
-{
-	std::vector<Channel*>::iterator it = std::find(_channels.begin(),
-		_channels.end(), channel);
-	if (it != _channels.end())
-		_channels.erase(it);
-}
-
-bool	Client::isInChannel(const std::string& name) const
-{
-	for (std::vector<Channel*>::const_iterator it = _channels.begin(); it != _channels.end(); ++it)
-	{
-		if ((*it)->getName() == name)
-			return true;
-	}
-	return false;
-}
-
-void	Client::addInvite(const std::string& channelName)
-{
-	if (!isInvitedTo(channelName))
-		_invites.push_back(channelName);
-}
-
-bool	Client::isInvitedTo(const std::string& channelName) const
-{
-	for (std::vector<std::string>::const_iterator it = _invites.begin(); it != _invites.end(); ++it)
-	{
-		if (*it == channelName)
-			return true;
-	}
-	return false;
-}
-
-void	Client::removeInvite(const std::string& channelName)
-{
-	std::vector<std::string>::iterator it = std::find(_invites.begin(),
-		_invites.end(), channelName);
-	if (it != _invites.end())
-		_invites.erase(it);
-}
-
-void	Client::appendToBuffer(const std::string& data)
-{
-	_buffer += data;
-}
-void	Client::clearBuffer()
-{
-	_buffer.clear();
-}
-bool	Client::hasCompleteMessage() const
-{
-	return _buffer.find('\n') != std::string::npos;
 }
 
 void	Client::sendMessage(const std::string& message) const
