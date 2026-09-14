@@ -63,6 +63,7 @@ void	Server::setupSocket()
 		exit(1);
 	}
 	std::cout << "Server listening on port: " << _port << "." << std::endl;
+	std::cout << "Server password: " << _password << "." << std::endl;
 	
 	//	This structure contains the fds and events for their respective sockets.
 	//		Initially from the server socket.
@@ -94,6 +95,69 @@ Server::~Server()
 
 	if (_serverSocket >= 0)
 		close(_serverSocket);
+}
+
+void	Server::handleNewConnection()
+{
+	struct	sockaddr_in	clientAddr;
+	socklen_t	addrLen = sizeof(clientAddr);
+
+	int	clientFd = accept(_serverSocket, (struct sockaddr*)&clientAddr, &addrLen);
+	if (clientFd < 0)
+	{
+		std::cerr << "Error: accept failed" << std::endl;
+		return;
+	}
+	if (fcntl(clientFd, F_SETFL, O_NONBLOCK) < 0)
+	{
+		std::cerr << "Error: fcntl failed";
+		close(clientFd);
+		return;
+	}
+	Client* client = new Client(clientFd, clientAddr);
+	_clients[clientFd] = client;
+
+	sendInstructions(client);
+
+	struct pollfd	pfd;
+	pfd.fd = clientFd;
+	pfd.events = POLLIN;
+	pfd.revents = 0;
+	_pollFds.push_back(pfd);
+
+	std::cout << "New client connected: fd= " << clientFd << ", ip=" <<
+	client->getHostName() << std::endl;
+}
+
+void	Server::handleClientData(int fd)
+{
+	std::map<int, Client*>::iterator it = _clients.find(fd);
+	if (it == _clients.end())
+		return;
+	Client* client = it->second;
+	char buffer[512];
+	std::memset(buffer, 0, sizeof(buffer));
+
+	ssize_t bytesRead = recv(fd, buffer, sizeof(buffer) - 1, 0);
+	if (bytesRead <= 0)
+	{
+		if (bytesRead == 0)
+			std::cerr << "Client fd: " << fd << " disconnected" << std::endl;
+		else
+			std::cerr << "Error: recv failed of fd= " << fd << "." << std::endl;
+		removeClient(fd);
+		return; 
+	}
+
+	client->appendToBuffer(std::string(buffer, bytesRead));
+	while (client->hasCompleteMessage())
+	{
+		std::string line = client->extractMessage();
+		if (!line.empty())
+			processCommand(client, line);
+		if (_clients.find(fd) == _clients.end())
+			return;
+	}
 }
 
 void	Server::run()
@@ -135,69 +199,6 @@ void	Server::run()
 		}
 	}
 	std::cout << "Server stopped." << std::endl;
-}
-
-void	Server::handleNewConnection()
-{
-	struct	sockaddr_in	clientAddr;
-	socklen_t	addrLen = sizeof(clientAddr);
-
-	int	clientFd = accept(_serverSocket, (struct sockaddr*)&clientAddr, &addrLen);
-	if (clientFd < 0)
-	{
-		std::cerr << "Error: accept failed" << std::endl;
-		return;
-	}
-	if (fcntl(clientFd, F_SETFL, O_NONBLOCK) < 0)
-	{
-		std::cerr << "Error: fcntl failed";
-		close(clientFd);
-		return;
-	}
-	Client* client = new Client(clientFd, clientAddr);
-	_clients[clientFd] = client;
-
-	struct pollfd	pfd;
-	pfd.fd = clientFd;
-	pfd.events = POLLIN;
-	pfd.revents = 0;
-	_pollFds.push_back(pfd);
-	
-	// std::cout << "New client connected: fd= " << clientFd << ", ip=" <<
-	// inet_ntoa(clientAddr.sin_addr) << std::endl;
-	std::cout << "New client connected: fd= " << clientFd << ", ip=" <<
-	client->getHostName() << std::endl;
-}
-
-void	Server::handleClientData(int fd)
-{
-	std::map<int, Client*>::iterator it = _clients.find(fd);
-	if (it == _clients.end())
-		return;
-	Client* client = it->second;
-	char buffer[512];
-	std::memset(buffer, 0, sizeof(buffer));
-
-	ssize_t bytesRead = recv(fd, buffer, sizeof(buffer) - 1, 0);
-	if (bytesRead <= 0)
-	{
-		if (bytesRead == 0)
-			std::cerr << "Client fd: " << fd << " disconnected" << std::endl;
-		else
-			std::cerr << "Error: recv failed of fd= " << fd << "." << std::endl;
-		removeClient(fd);
-		return; 
-	}
-
-	client->appendToBuffer(std::string(buffer, bytesRead));
-	while (client->hasCompleteMessage())
-	{
-		std::string line = client->extractMessage();
-		if (!line.empty())
-			processCommand(client, line);
-		if (_clients.find(fd) == _clients.end())
-			return;
-	}
 }
 
 void	Server::removeClient(int fd)
@@ -315,6 +316,17 @@ void	Server::processCommand(Client* client, std::string& line)
     {
         sendError(client, "421", command + " :Unknown command");
     }
+}
+
+void		Server::sendInstructions(Client* client) const
+{
+	std::string message = "Connected to ircserv\n";
+	message += "Please register using:\n";
+	message += "PASS <password>\n";
+	message += "NICK <nickname>\n";
+	message += "USER <username>\n";
+	
+	sendRaw(client, message);
 }
 
 void		Server::sendReply(Client* client, const std::string& code, const std::string& msg) const

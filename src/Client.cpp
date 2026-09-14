@@ -13,10 +13,7 @@ Client::Client(int fd, struct sockaddr_in address)
 	_registered(false),
 	_disconnected(false)
 {
-	// std::string	message = "Wellcome\n";
 	_hostname = inet_ntoa(_address.sin_addr);
-	// if (_fd >= 0 && !message.empty())
-	// 	send(_fd, message.c_str(), message.length(), 0);
 }
 
 Client::~Client()
@@ -115,8 +112,14 @@ void	Client::removeInvite(const std::string& channelName)
 		_invites.erase(it);
 }
 
-void	Client::appendToBuffer(const std::string& data) {_buffer += data;}
-void	Client::clearBuffer() {_buffer.clear();}
+void	Client::appendToBuffer(const std::string& data)
+{
+	_buffer += data;
+}
+void	Client::clearBuffer()
+{
+	_buffer.clear();
+}
 bool	Client::hasCompleteMessage() const
 {
 	return _buffer.find('\n') != std::string::npos;

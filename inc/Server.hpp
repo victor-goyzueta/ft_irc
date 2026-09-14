@@ -60,6 +60,8 @@ class Server
 		void	deleteChannel(const std::string& name);
 		bool	isNickNameTaken(const std::string& name) const;
 		void	broadcastToChannel(Channel* channel, const std::string& msg, Client* exclude) const;
+	
+		void	sendInstructions(Client* client) const;
 		void	sendReply(Client* client, const std::string& code, const std::string& msg) const;
 		void	sendError(Client* client, const std::string& code, const std::string& msg) const;
 		void	sendRaw(Client* client, const std::string& msg) const;
