@@ -52,6 +52,7 @@ class	Channel
     	void removeClient(Client* client);
     	bool hasClient(Client* client) const;
     	bool hasClient(const std::string& nick) const;
+		bool hasOthersOperators(Client *exclude) const;
     	bool isEmpty() const;
 
     	void addOperator(Client* client);

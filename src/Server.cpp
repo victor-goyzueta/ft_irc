@@ -408,12 +408,12 @@ void	Server::cmdPass(Client* client, const std::vector<std::string>& params, con
 	(void)message;
 	if (params.empty())
 	{
-		sendError(client, "461", "PASS: Not enough parameters");
+		sendError(client, "461", "PASS: Not enough parameters -> PASS <password>");
 		return;
 	}
 	if (params[0] == _password)
 	{
-		if (client->isAuthenticated())
+		if (client->isAuthenticated() && client->isRegistered())
 		{
 			sendError(client, "462", " You may not reregister");
 			return;
@@ -477,7 +477,7 @@ void	Server::cmdUser(Client* client, const std::vector<std::string>& params, con
 {
 	if (params.size() < 3)
 	{
-		sendError(client, "461", "USER: Not enough parameters");
+		sendError(client, "461", "USER: Not enough parameters -> USER <username> <mode> <unused> [:realname]");
 		return;
 	}
 	if (client->isRegistered())
@@ -524,7 +524,7 @@ void	Server::cmdJoin(Client* client, const std::vector<std::string>& params, con
 
 	if (params.empty())
 	{
-		sendError(client, "461", "JOIN: Not enough parameters");
+		sendError(client, "461", "JOIN: Not enough parameters -> JOIN <channel> [password]");
 		return;
 	}
 	std::string	channelName = params[0];
@@ -602,7 +602,7 @@ void	Server::cmdPart(Client* client, const std::vector<std::string>& params, con
 {
 	if (params.empty())
 	{
-		sendError(client, "461", "PART :Not enough parameters");
+		sendError(client, "461", "PART :Not enough parameters -> PART <channel> [:message]");
 		return;
 	}
 	std::string	channelName = params[0];
@@ -634,7 +634,7 @@ void	Server::cmdTopic(Client* client, const std::vector<std::string>& params, co
 {
 	if (params.empty())
 	{
-		sendError(client, "461", "TOPIC: Not enough parameters");
+		sendError(client, "461", "TOPIC: Not enough parameters -> TOPIC <channel> [:topic]");
 		return;
 	}
 	std::string	channelName = params[0];
@@ -677,7 +677,10 @@ void	Server::cmdNames(Client* client, const std::vector<std::string>& params, co
 {
 	(void)message;
 	if (params.empty())
+	{
+		sendError(client, "461", "NAMES: Not enough parameters -> NAMES <channel>");
 		return;
+	}
 	std::string	channelName = params[0];
 	Channel*	channel = findChannel(channelName);
 	if (!channel)
@@ -709,7 +712,7 @@ void	Server::cmdInvite(Client* client, const std::vector<std::string>& params, c
 	(void)message;
 	if (params.size() < 2)
 	{
-		sendError(client, "461", "INVITE: Not enough parameters");
+		sendError(client, "461", "INVITE: Not enough parameters -> INVITE <target> <channel>");
 		return;
 	}
 	std::string	targetNick = params[0];
@@ -755,7 +758,7 @@ void	Server::cmdKick(Client* client, const std::vector<std::string>& params, con
 {
 	if (params.size() < 2)
 	{
-		sendError(client, "461", "KICK :Not enough parameters");
+		sendError(client, "461", "KICK :Not enough parameters -> KICK <channel> <target> [:message]");
 		return;
 	}
 	std::string channelName = params[0];
@@ -857,7 +860,7 @@ void	Server::cmdMode(Client* client, const std::vector<std::string>& params, con
 	(void)message;
 	if (params.empty())
 	{
-		sendError(client, "461", "MODE :Not enough parameters");
+		sendError(client, "461", "MODE :Not enough parameters -> MODE <channel> [...]");
 		return;
 	}
 	std::string	target = params[0];
@@ -920,7 +923,7 @@ void	Server::cmdMode(Client* client, const std::vector<std::string>& params, con
 			{
 				if (paramIdx >= params.size())
 				{
-					sendError(client, "461", "MODE :Not enough parameters");
+					sendError(client, "461", "MODE :Not enough parameters -> MODE <channel> [...] <password>");
 					continue;
 				}
 				channel->setPassword(params[paramIdx]);
@@ -942,7 +945,7 @@ void	Server::cmdMode(Client* client, const std::vector<std::string>& params, con
 		{
 			if (paramIdx >= params.size())
 			{
-				sendError(client, "461", "MODE :Not enough parameters");
+				sendError(client, "461", "MODE :Not enough parameters -> MODE <channel> [...] <target>");
 				continue;
 			}
 			std::string targetNick = params[paramIdx];
@@ -961,6 +964,11 @@ void	Server::cmdMode(Client* client, const std::vector<std::string>& params, con
 			}
 			else
 			{
+				if (!channel->hasOthersOperators(targetClient))
+				{
+					sendError(client, "482","Cannot remove operator status: channel must have at least one operator.");
+					continue;
+				}
 				channel->removeOperator(targetClient);
 				std::string modeMsg = client->getPrefix() + " MODE " + target + " -o " + targetNick + "\r\n";
 				channel->broadcast(modeMsg, NULL);
@@ -973,7 +981,7 @@ void	Server::cmdMode(Client* client, const std::vector<std::string>& params, con
 			{
 				if (paramIdx >= params.size())
 				{
-					sendError(client, "461", "MODE :Not enough parameters");
+					sendError(client, "461", "MODE :Not enough parameters -> MODE <channel> [...] <limit>");
 					continue;
 				}
 				std::string	limitStr = params[paramIdx];

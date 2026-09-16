@@ -142,6 +142,19 @@ bool	Channel::hasClient(const std::string& nick) const
 	return false;
 }
 
+bool	Channel::hasOthersOperators(Client *exclude) const
+{
+	int	count = 0;
+	
+	for (std::vector<Client*>::const_iterator it = _operators.begin();
+		it != _operators.end(); ++it)
+	{
+		if (*it != exclude)
+			count++;
+	}
+	return (count > 0);
+}
+
 bool	Channel::isEmpty() const
 {
 	return _clients.empty();
