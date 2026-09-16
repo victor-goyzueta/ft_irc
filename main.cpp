@@ -1,4 +1,5 @@
 #include "inc/Server.hpp"
+#include "inc/Utils.hpp"
 
 # include <iostream>
 # include <cstdlib>
@@ -27,7 +28,12 @@ int	main(int argc, char **argv)
 		std::cerr << "Error: port must be between 1024 and 65535." << std::endl;
 		return 1;
 	}
-	std::string	password = argv[2];
+	std::string	password = trim(argv[2]);
+	if (password.empty())
+	{
+		std::cerr << "Error: password cannot be empty." << std::endl;
+		return 1;
+	}
 	
 	Server	server(port, password);
 	server.run();

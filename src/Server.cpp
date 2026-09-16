@@ -310,8 +310,8 @@ void	Server::processCommand(Client* client, std::string& line)
         cmdPrivmsg(client, params, message);
     else if (command == "MODE")
         cmdMode(client, params, message);
-    else if (command == "PING")
-        cmdPing(client, params, message);
+    // else if (command == "PING")
+    //     cmdPing(client, params, message);
     else
     {
         sendError(client, "421", command + " :Unknown command");
@@ -320,11 +320,11 @@ void	Server::processCommand(Client* client, std::string& line)
 
 void		Server::sendInstructions(Client* client) const
 {
-	std::string message = "Connected to ircserv\n";
-	message += "Please register using:\n";
-	message += "PASS <password>\n";
-	message += "NICK <nickname>\n";
-	message += "USER <username>\n";
+	std::string message = "Connected to ircserv\r\n";
+	message += "Please register using:\r\n";
+	message += "PASS <password>\r\n";
+	message += "NICK <nickname>\r\n";
+	message += "USER <username> <mode> <unused> :realname\r\n";
 	
 	sendRaw(client, message);
 }
@@ -411,15 +411,21 @@ void	Server::cmdPass(Client* client, const std::vector<std::string>& params, con
 		sendError(client, "461", "PASS: Not enough parameters");
 		return;
 	}
-	if (client->isAuthenticated())
-	{
-		sendError(client, "462", " You may not reregister");
-		return;
-	}
 	if (params[0] == _password)
 	{
+		if (client->isAuthenticated())
+		{
+			sendError(client, "462", " You may not reregister");
+			return;
+		}
 		client->setAuthenticated(true);
 		std::cout << "Client fd: " << client->getFd() << " authenticated." << std::endl;
+		if (!client->getUserName().empty() && client->getNickName() != "*" && !client->isRegistered())
+		{
+			client->setRegistered(true);
+			sendReply(client, "001", "Welcome to the Internet Relay Network "
+				+ client->getPrefix());
+		}
 	}
 	else
 		sendError(client, "464", " Password incorrect");
@@ -835,16 +841,16 @@ void	Server::cmdPrivmsg(Client* client, const std::vector<std::string>& params, 
 	}
 }
 
-void	Server::cmdPing(Client* client, const std::vector<std::string>& params, const std::string& message)
-{
-	std::string token = "ircserv";
-	if (!params.empty())
-		token = params[0];
-	else if (!message.empty())
-		token = message;
-	std::string pong = ":ircserv PONG ircserv :" + token + "\r\n";
-	client->sendMessage(pong);
-}
+// void	Server::cmdPing(Client* client, const std::vector<std::string>& params, const std::string& message)
+// {
+// 	std::string token = "ircserv";
+// 	if (!params.empty())
+// 		token = params[0];
+// 	else if (!message.empty())
+// 		token = message;
+// 	std::string pong = ":ircserv PONG ircserv :" + token + "\r\n";
+// 	client->sendMessage(pong);
+// }
 
 void	Server::cmdMode(Client* client, const std::vector<std::string>& params, const std::string& message)
 {
@@ -905,7 +911,7 @@ void	Server::cmdMode(Client* client, const std::vector<std::string>& params, con
 			if (adding) channel->addMode('t');
 			else channel->removeMode('t');
 			std::string modeMsg = client->getPrefix() + " MODE " + target + " "
-				+ (adding ? "+" : "-") + "i\r\n";
+				+ (adding ? "+" : "-") + "t\r\n";
 			channel->broadcast(modeMsg, NULL);
 		}
 		else if (c == 'k')
