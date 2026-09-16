@@ -33,7 +33,6 @@ class Server
 		std::map<std::string, Channel*>	_channels;
 
 		void	setupSocket();
-		void	handleNewClient();
 		void	handleNewConnection();
 		void	handleClientData(int fd);
 		void	removeClient(int fd);
