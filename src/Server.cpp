@@ -545,6 +545,11 @@ void	Server::cmdJoin(Client* client, const std::vector<std::string>& params, con
 		sendReply(client, "366", channelName + " : End of /NAMES list.");
 		std::cout << "Channel " << channelName << " created by " << client->getNickName()
 			<< std::endl;
+		if (params.size() > 1)
+		{
+			_channels[channelName]->setPassword(params[1]);
+			_channels[channelName]->addMode('k');
+		}
 		return;
 	}
 	if (channel->hasClient(client))
