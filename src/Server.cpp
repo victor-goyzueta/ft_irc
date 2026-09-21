@@ -629,10 +629,19 @@ void	Server::cmdPart(Client* client, const std::vector<std::string>& params, con
 	partMsg += "\r\n";
 	channel->broadcast(partMsg, NULL);
 
+	bool	wasOperator = channel->isOperator(client);
 	channel->removeClient(client);
 	client->leaveChannel(channel);
 	if (channel->isEmpty())
 		deleteChannel(channelName);
+	else if (wasOperator)
+	{
+		Client* newOperator = channel->getClients()[0];
+		channel->addOperator(newOperator);
+		std::string modeMsg = newOperator->getPrefix() + " MODE " + channel->getName()
+			+ " +o " + newOperator->getNickName() + "\r\n";
+		channel->broadcast(modeMsg, NULL);
+	}
 }
 
 void	Server::cmdTopic(Client* client, const std::vector<std::string>& params, const std::string& message)
