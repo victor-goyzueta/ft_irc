@@ -873,8 +873,13 @@ void	Server::cmdMode(Client* client, const std::vector<std::string>& params, con
 			sendError(client, "502", "Can't change mode for other users");
 			return;
 		}
-		std::string	modeReply = channel->getModeString() + channel->getModeParams();
-		sendReply(client, "324", target + " " + modeReply);
+		if (channel->hasClient(client))
+		{
+			std::string	modeReply = channel->getModeString() + channel->getModeParams();
+			sendReply(client, "324", target + " " + modeReply);
+		}
+		else
+			sendError(client, "442", target + " :You're not on that channel");
 		return;
 	}
 	std::string	modes = params[1];
