@@ -18,6 +18,16 @@ std::string	trim(const std::string& str)
     return str.substr(first, last - first + 1);
 }
 
+bool	whiteSpaces(const std::string& str)
+{
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		if (str[i] == ' ')
+			return true;
+	}
+	return false;
+}
+
 std::vector<std::string>	splitParams(const std::string& str)
 {
 	std::vector<std::string>	params;

@@ -29,9 +29,9 @@ int	main(int argc, char **argv)
 		return 1;
 	}
 	std::string	password = trim(argv[2]);
-	if (password.empty())
+	if (password.empty() || whiteSpaces(password))
 	{
-		std::cerr << "Error: password cannot be empty." << std::endl;
+		std::cerr << "Error: The password cannot be empty or contain spaces." << std::endl;
 		return 1;
 	}
 	
