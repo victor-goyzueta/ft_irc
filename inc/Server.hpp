@@ -49,7 +49,6 @@ class Server
 		void	cmdInvite(Client* client, const std::vector<std::string>& params, const std::string& message);
 		void	cmdKick(Client* client, const std::vector<std::string>& params, const std::string& message);
 		void	cmdPrivmsg(Client* client, const std::vector<std::string>& params, const std::string& message);
-		// void	cmdPing(Client* client, const std::vector<std::string>& params, const std::string& message);
 		void	cmdMode(Client* client, const std::vector<std::string>& params, const std::string& message);
 
 		Client* 	findClientByNick(const std::string& nick) const;

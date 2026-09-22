@@ -634,7 +634,7 @@ void	Server::cmdPart(Client* client, const std::vector<std::string>& params, con
 	client->leaveChannel(channel);
 	if (channel->isEmpty())
 		deleteChannel(channelName);
-	else if (wasOperator)
+	else if (wasOperator && !channel->hasOthersOperators(NULL))
 	{
 		Client* newOperator = channel->getClients()[0];
 		channel->addOperator(newOperator);
@@ -812,8 +812,6 @@ void	Server::cmdKick(Client* client, const std::vector<std::string>& params, con
 	channel->broadcast(kickMsg, NULL);
 	channel->removeClient(target);
 	target->leaveChannel(channel);
-	if (channel->isEmpty())
-		deleteChannel(channelName);
 }
 
 void	Server::cmdPrivmsg(Client* client, const std::vector<std::string>& params, const std::string& message)
@@ -857,17 +855,6 @@ void	Server::cmdPrivmsg(Client* client, const std::vector<std::string>& params, 
 		targetClient->sendMessage(msg);
 	}
 }
-
-// void	Server::cmdPing(Client* client, const std::vector<std::string>& params, const std::string& message)
-// {
-// 	std::string token = "ircserv";
-// 	if (!params.empty())
-// 		token = params[0];
-// 	else if (!message.empty())
-// 		token = message;
-// 	std::string pong = ":ircserv PONG ircserv :" + token + "\r\n";
-// 	client->sendMessage(pong);
-// }
 
 void	Server::cmdMode(Client* client, const std::vector<std::string>& params, const std::string& message)
 {
